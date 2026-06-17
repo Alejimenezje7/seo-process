@@ -1,12 +1,9 @@
 import streamlit as st
 from io import BytesIO
 from docx import Document
-from docx.shared import Pt, Inches, RGBColor
+from docx.shared import Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 
-# ──────────────────────────────────────────────
-# Page config
-# ──────────────────────────────────────────────
 st.set_page_config(
     page_title="Mapa de Procesos SEO & ASO",
     page_icon="🗺️",
@@ -14,301 +11,337 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# ──────────────────────────────────────────────
-# Custom CSS
-# ──────────────────────────────────────────────
+# ── CSS ──────────────────────────────────────────
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap');
 
-    html, body, [class*="css"] { font-family: 'Rubik', sans-serif; }
+/* Reset streamlit defaults */
+html, body, [class*="css"] { font-family: 'Rubik', sans-serif !important; }
+#MainMenu, footer, header, [data-testid="stHeader"] { display: none !important; }
+[data-testid="stDecoration"] { display: none !important; }
+[data-testid="stToolbar"] { display: none !important; }
+.block-container { padding-top: 2rem !important; padding-bottom: 2rem !important; max-width: 1100px !important; }
+[data-testid="stSidebar"] { background-color: #111 !important; }
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p { color: #ccc; }
 
-    /* Hide default streamlit elements */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
+/* ── Password screen ── */
+.login-wrapper {
+    display: flex; justify-content: center; align-items: center;
+    min-height: 70vh; padding: 20px;
+}
+.login-box {
+    background: #141414; border: 1px solid #2a2a2a; border-radius: 16px;
+    padding: 48px 40px; max-width: 400px; width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.login-box h1 { font-size: 1.8rem; font-weight: 700; color: #fff; margin: 0 0 6px; }
+.login-box p { color: #777; font-size: 0.95rem; margin: 0 0 28px; }
 
-    /* Card grid */
-    .card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin: 30px 0; }
-    @media (max-width: 900px) { .card-grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 640px) { .card-grid { grid-template-columns: 1fr; } }
+/* ── Section titles ── */
+.sec-title {
+    text-align: center; padding: 40px 0 8px;
+}
+.sec-title h1 {
+    font-size: 2.2rem; font-weight: 700; color: #fff;
+    margin: 0 0 4px; letter-spacing: -0.5px;
+}
+.sec-title span {
+    font-size: 0.8rem; color: #666; text-transform: uppercase;
+    letter-spacing: 3px; font-weight: 300;
+}
 
-    .card {
-        background-color: #1a1a1a; border: 1px solid #333; border-radius: 8px;
-        padding: 32px 24px; transition: all 0.3s ease; cursor: pointer; text-decoration: none; display: block;
-    }
-    .card:hover { border-color: #555; background-color: #222; transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
-    .card-icon { font-size: 2.2rem; margin-bottom: 12px; display: block; }
-    .card-title { font-size: 1.2rem; font-weight: 600; color: #ffffff; margin-bottom: 10px; }
-    .card-desc { font-size: 0.9rem; color: #999; line-height: 1.6; }
+/* ── Cards ── */
+.card-box {
+    background: #141414; border: 1px solid #222; border-radius: 12px;
+    padding: 28px 24px; height: 100%; transition: all 0.25s ease;
+    cursor: default;
+}
+.card-box:hover { border-color: #444; background: #1a1a1a; transform: translateY(-3px); box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
+.card-box .icon { font-size: 2rem; margin-bottom: 10px; display: block; }
+.card-box .title { font-size: 1.1rem; font-weight: 600; color: #fff; margin-bottom: 8px; }
+.card-box .desc { font-size: 0.85rem; color: #888; line-height: 1.55; }
 
-    /* Section headers */
-    .section-header { text-align: center; margin: 50px 0 10px; }
-    .section-title { font-size: 2.2rem; font-weight: 700; color: #ffffff; letter-spacing: -1px; margin-bottom: 6px; }
-    .section-subtitle { font-size: 1rem; color: #888; font-weight: 300; text-transform: uppercase; letter-spacing: 2px; }
+/* ── Page titles ── */
+.page-head {
+    padding: 10px 0 24px; border-bottom: 1px solid #1a1a1a; margin-bottom: 28px;
+}
+.page-head h1 { font-size: 2rem; font-weight: 700; color: #fff; margin: 0; }
 
-    /* Password screen */
-    .pw-container { display: flex; justify-content: center; align-items: center; min-height: 80vh; }
-    .pw-card { max-width: 420px; width: 100%; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 36px; }
-    .pw-title { font-size: 2rem; font-weight: 700; color: #fff; margin-bottom: 8px; }
-    .pw-sub { color: #999; margin-bottom: 24px; }
+/* ── Process flow ── */
+.flow-box {
+    background: #0d0d0d; border: 1px solid #222; border-radius: 8px;
+    padding: 20px 24px; font-family: 'Courier New', monospace;
+    color: #6ee7a0; font-size: 0.82rem; line-height: 1.7;
+    white-space: pre-wrap; word-wrap: break-word; margin: 16px 0;
+    overflow-x: auto;
+}
 
-    /* Detail content styling */
-    .detail-content h2 { color: #ffffff; margin-top: 20px; }
-    .detail-content h3 { color: #dddddd; }
-    .detail-content p { color: #cccccc; line-height: 1.8; }
-    .detail-content li { color: #cccccc; line-height: 1.6; margin-bottom: 8px; }
-    .detail-content strong { color: #ffffff; }
+/* ── Code block ── */
+.code-box {
+    background: #0d0d0d; border: 1px solid #222; border-radius: 6px;
+    padding: 12px 16px; font-family: 'Courier New', monospace;
+    color: #6ee7a0; font-size: 0.85rem; margin: 10px 0;
+}
 
-    /* Process flow */
-    .process-flow {
-        background-color: #0a0a0a; padding: 20px; border-radius: 5px;
-        font-family: monospace; overflow-x: auto; margin: 20px 0;
-        color: #88d498; font-size: 0.85rem; line-height: 1.6;
-        white-space: pre-wrap; word-wrap: break-word; border: 1px solid #333;
-    }
+/* ── Info cards in detail pages ── */
+.info-card {
+    background: #111; border: 1px solid #1e1e1e; border-radius: 10px;
+    padding: 24px; margin-bottom: 16px;
+}
+.info-card h3 { color: #fff; font-size: 1.05rem; margin: 0 0 12px; font-weight: 600; }
+.info-card p { color: #aaa; line-height: 1.75; margin-bottom: 10px; font-size: 0.92rem; }
+.info-card ul { margin: 8px 0 8px 20px; padding: 0; }
+.info-card li { color: #aaa; line-height: 1.6; margin-bottom: 6px; font-size: 0.92rem; }
+.info-card strong { color: #ddd; }
+.info-card a { color: #4a9eff; text-decoration: none; }
+.info-card a:hover { text-decoration: underline; }
 
-    /* Code block */
-    .code-block {
-        background-color: #0a0a0a; padding: 15px; border-radius: 5px;
-        font-family: monospace; overflow-x: auto; margin: 15px 0;
-        color: #88d498; font-size: 0.9rem; line-height: 1.5; border: 1px solid #333;
-    }
+/* ── Banner SVG ── */
+.svg-banner {
+    width: 100%; overflow-x: auto; background: #111; border: 1px solid #1e1e1e;
+    border-radius: 10px; margin-bottom: 24px; padding: 8px;
+}
 
-    /* Back button */
-    .back-btn {
-        display: inline-flex; align-items: center; gap: 8px; color: #999;
-        text-decoration: none; font-size: 0.95rem; cursor: pointer;
-        background: none; border: none; padding: 8px 0; margin-bottom: 20px;
-        font-family: 'Rubik', sans-serif;
-    }
-    .back-btn:hover { color: #fff; }
+/* ── Streamlit button overrides ── */
+.stButton > button {
+    border-radius: 8px !important; font-family: 'Rubik', sans-serif !important;
+    font-weight: 500 !important; transition: all 0.2s !important;
+}
 
-    /* Banner SVG container */
-    .banner-container {
-        width: 100%; overflow-x: auto; background: #1a1a1a;
-        border: 1px solid #333; border-radius: 8px; margin-bottom: 30px; padding: 10px;
-    }
+/* ── Expander overrides ── */
+[data-testid="stExpander"] {
+    background: #111 !important; border: 1px solid #1e1e1e !important;
+    border-radius: 10px !important; margin-bottom: 12px !important;
+}
+[data-testid="stExpander"] summary span { font-weight: 600 !important; font-size: 1rem !important; }
 
-    /* Streamlit expander overrides */
-    .streamlit-expanderHeader { font-weight: 600 !important; font-size: 1.05rem !important; }
+/* ── Divider ── */
+hr { border-color: #1a1a1a !important; }
 
-    /* Link style */
-    a { color: #4a9eff; }
-    a:hover { color: #6bb3ff; }
+/* ── Sidebar nav buttons ── */
+[data-testid="stSidebar"] .stButton > button {
+    text-align: left !important; justify-content: flex-start !important;
+    background: transparent !important; border: none !important;
+    color: #aaa !important; padding: 6px 12px !important;
+    font-size: 0.9rem !important; border-radius: 6px !important;
+}
+[data-testid="stSidebar"] .stButton > button:hover {
+    background: #1a1a1a !important; color: #fff !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
-# ──────────────────────────────────────────────
-# Session state init
-# ──────────────────────────────────────────────
-if "authenticated" not in st.session_state:
-    st.session_state.authenticated = False
-if "current_page" not in st.session_state:
-    st.session_state.current_page = "index"
+# ── Session state ────────────────────────────────
+if "auth" not in st.session_state:
+    st.session_state.auth = False
+if "page" not in st.session_state:
+    st.session_state.page = "index"
 
 
-def navigate(page):
-    st.session_state.current_page = page
+def go(p):
+    st.session_state.page = p
 
 
-# ──────────────────────────────────────────────
-# Word document generator
-# ──────────────────────────────────────────────
-def generate_word(title, sections):
+# ── Word generator ───────────────────────────────
+def make_word(title, sections):
     doc = Document()
     style = doc.styles["Normal"]
-    font = style.font
-    font.name = "Arial"
-    font.size = Pt(11)
-    font.color.rgb = RGBColor(0x22, 0x22, 0x22)
-
-    heading = doc.add_heading(title, level=0)
-    heading.alignment = WD_ALIGN_PARAGRAPH.LEFT
-
-    for section_title, content_blocks in sections:
-        doc.add_heading(section_title, level=1)
-        for block in content_blocks:
-            if block["type"] == "paragraph":
-                doc.add_paragraph(block["text"])
-            elif block["type"] == "heading2":
-                doc.add_heading(block["text"], level=2)
-            elif block["type"] == "heading3":
-                doc.add_heading(block["text"], level=3)
-            elif block["type"] == "bullet":
-                doc.add_paragraph(block["text"], style="List Bullet")
-            elif block["type"] == "code":
+    style.font.name = "Arial"
+    style.font.size = Pt(11)
+    style.font.color.rgb = RGBColor(0x22, 0x22, 0x22)
+    h = doc.add_heading(title, level=0)
+    h.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    for sec_title, blocks in sections:
+        doc.add_heading(sec_title, level=1)
+        for b in blocks:
+            t = b["type"]
+            if t == "p":
+                doc.add_paragraph(b["text"])
+            elif t == "h2":
+                doc.add_heading(b["text"], level=2)
+            elif t == "h3":
+                doc.add_heading(b["text"], level=3)
+            elif t == "li":
+                doc.add_paragraph(b["text"], style="List Bullet")
+            elif t == "code":
                 p = doc.add_paragraph()
-                run = p.add_run(block["text"])
-                run.font.name = "Consolas"
-                run.font.size = Pt(9)
+                r = p.add_run(b["text"])
+                r.font.name = "Consolas"
+                r.font.size = Pt(9)
+    buf = BytesIO()
+    doc.save(buf)
+    buf.seek(0)
+    return buf
 
-    buffer = BytesIO()
-    doc.save(buffer)
-    buffer.seek(0)
-    return buffer
+
+def word_btn(title, sections, filename):
+    w = make_word(title, sections)
+    st.download_button("📥 Descargar Word", w, filename,
+                       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                       use_container_width=False)
 
 
-# ──────────────────────────────────────────────
-# PASSWORD SCREEN
-# ──────────────────────────────────────────────
-def render_password():
-    st.markdown('<div class="pw-container"><div class="pw-card">', unsafe_allow_html=True)
-    st.markdown('<div class="pw-title">Acceso privado</div>', unsafe_allow_html=True)
-    st.markdown('<div class="pw-sub">Ingresa la contraseña para ver el mapa de procesos.</div>', unsafe_allow_html=True)
-
-    password = st.text_input("Contraseña", type="password", key="pw_input")
-
-    if st.button("Entrar", type="primary", use_container_width=True):
-        if password.strip() == "SEOLAM2026":
-            st.session_state.authenticated = True
-            st.rerun()
-        else:
-            st.error("Contraseña incorrecta. Inténtalo de nuevo.")
-
+# ══════════════════════════════════════════════════
+# PASSWORD
+# ══════════════════════════════════════════════════
+def page_login():
+    st.markdown('<div class="login-wrapper"><div class="login-box">', unsafe_allow_html=True)
+    st.markdown("<h1>🔒 Acceso privado</h1><p>Ingresa la contraseña para ver el mapa de procesos.</p>", unsafe_allow_html=True)
     st.markdown('</div></div>', unsafe_allow_html=True)
 
+    _, col, _ = st.columns([1.3, 1, 1.3])
+    with col:
+        pw = st.text_input("Contraseña", type="password", label_visibility="collapsed",
+                           placeholder="Contraseña...")
+        if st.button("**Entrar**", type="primary", use_container_width=True):
+            if pw.strip() == "SEOLAM2026":
+                st.session_state.auth = True
+                st.rerun()
+            else:
+                st.error("Contraseña incorrecta.")
 
-# ──────────────────────────────────────────────
-# INDEX PAGE
-# ──────────────────────────────────────────────
-def render_index():
-    # SEO Section
-    st.markdown("""
-    <div class="section-header">
-        <div class="section-title">Mapa de Procesos SEO</div>
-        <div class="section-subtitle">Technical SEO</div>
-    </div>
-    """, unsafe_allow_html=True)
 
-    seo_cards = [
-        ("🔍", "Redirecciones 404", "Gestión de errores 404, implementación de redirecciones 301 y estrategias para preservar autoridad SEO.", "auditoria"),
-        ("🔗", "Estructura de URLs", "Optimización de URLs amigables, jerarquía lógica y canonicalización de páginas.", "urls"),
-        ("📱", "Mobile Optimization", "Responsive design, velocidad en móvil y optimización de Core Web Vitals.", "mobile"),
-        ("🚀", "Rendimiento", "Mejora de velocidad, compresión de imágenes, caching y optimización de recursos.", "rendimiento"),
-        ("🏷️", "Metadata & Schema", "Optimización de meta tags, structured data y schema markup para mejor indexación.", "metadata"),
-        ("📑", "Indexación", "Gestión de sitemaps, robots.txt, crawl budget y estrategias de indexación.", "indexacion"),
+# ══════════════════════════════════════════════════
+# INDEX
+# ══════════════════════════════════════════════════
+def page_index():
+    # SEO
+    st.markdown('<div class="sec-title"><h1>Mapa de Procesos SEO</h1><span>Technical SEO</span></div>', unsafe_allow_html=True)
+
+    seo = [
+        ("🔍", "Redirecciones 404", "Gestión de errores 404, redirecciones 301 y preservación de autoridad SEO.", "auditoria"),
+        ("🔗", "Estructura de URLs", "URLs amigables, jerarquía lógica y canonicalización de páginas.", "urls"),
+        ("📱", "Mobile Optimization", "Responsive design, velocidad en móvil y Core Web Vitals.", "mobile"),
+        ("🚀", "Rendimiento", "Velocidad, compresión de imágenes, caching y optimización de recursos.", "rendimiento"),
+        ("🏷️", "Metadata & Schema", "Meta tags, structured data y schema markup.", "metadata"),
+        ("📑", "Indexación", "Sitemaps, robots.txt, crawl budget y estrategias de indexación.", "indexacion"),
     ]
 
-    cols = st.columns(3)
-    for i, (icon, title, desc, page_id) in enumerate(seo_cards):
-        with cols[i % 3]:
-            with st.container(border=True):
-                st.markdown(f"### {icon} {title}")
-                st.caption(desc)
-                if st.button("Ver proceso →", key=f"btn_{page_id}", use_container_width=True):
-                    navigate(page_id)
-                    st.rerun()
+    for row_start in range(0, len(seo), 3):
+        cols = st.columns(3, gap="medium")
+        for i, col in enumerate(cols):
+            idx = row_start + i
+            if idx < len(seo):
+                icon, title, desc, pid = seo[idx]
+                with col:
+                    st.markdown(f"""<div class="card-box">
+                        <span class="icon">{icon}</span>
+                        <div class="title">{title}</div>
+                        <div class="desc">{desc}</div>
+                    </div>""", unsafe_allow_html=True)
+                    if st.button("Ver proceso →", key=f"b_{pid}", use_container_width=True):
+                        go(pid)
+                        st.rerun()
 
-    st.markdown("---")
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.divider()
 
-    # ASO Section
-    st.markdown("""
-    <div class="section-header">
-        <div class="section-title">Mapa de Procesos ASO</div>
-        <div class="section-subtitle">ASO</div>
-    </div>
-    """, unsafe_allow_html=True)
+    # ASO
+    st.markdown('<div class="sec-title"><h1>Mapa de Procesos ASO</h1><span>App Store Optimization</span></div>', unsafe_allow_html=True)
 
-    aso_cards = [
-        ("⚙️", "ASO Optimizations", "Optimización de metadatos de aplicaciones, keywords, icono y descripción para mejor visibilidad en tiendas.", "aso_optimizations"),
-        ("📊", "In App Events", "Configuración y seguimiento de eventos dentro de la aplicación para analytics y conversión.", "in_app_events"),
-        ("🧪", "AB Test", "Diseño, ejecución y análisis de pruebas A/B para optimizar la experiencia del usuario.", "ab_test"),
+    aso = [
+        ("⚙️", "ASO Optimizations", "Metadatos de apps, keywords, icono y visibilidad en tiendas.", "aso_opt"),
+        ("📊", "In App Events", "Configuración de eventos in-app para analytics y conversión.", "in_app"),
+        ("🧪", "AB Test", "Diseño, ejecución y análisis de pruebas A/B.", "ab_test"),
     ]
 
-    cols = st.columns(3)
-    for i, (icon, title, desc, page_id) in enumerate(aso_cards):
-        with cols[i % 3]:
-            with st.container(border=True):
-                st.markdown(f"### {icon} {title}")
-                st.caption(desc)
-                if st.button("Ver proceso →", key=f"btn_{page_id}", use_container_width=True):
-                    navigate(page_id)
-                    st.rerun()
+    cols = st.columns(3, gap="medium")
+    for i, (icon, title, desc, pid) in enumerate(aso):
+        with cols[i]:
+            st.markdown(f"""<div class="card-box">
+                <span class="icon">{icon}</span>
+                <div class="title">{title}</div>
+                <div class="desc">{desc}</div>
+            </div>""", unsafe_allow_html=True)
+            if st.button("Ver proceso →", key=f"b_{pid}", use_container_width=True):
+                go(pid)
+                st.rerun()
 
 
-# ──────────────────────────────────────────────
-# BACK BUTTON HELPER
-# ──────────────────────────────────────────────
-def back_button():
-    if st.button("← Volver al mapa", key="back"):
-        navigate("index")
+# ══════════════════════════════════════════════════
+# DETAIL PAGE HELPERS
+# ══════════════════════════════════════════════════
+def back():
+    if st.button("← Volver al mapa"):
+        go("index")
         st.rerun()
 
 
-# ──────────────────────────────────────────────
-# PAGE: REDIRECCIONES 404
-# ──────────────────────────────────────────────
-def render_auditoria():
-    back_button()
-    st.title("🔍 Redirecciones 404")
+def page_header(icon, title):
+    back()
+    st.markdown(f'<div class="page-head"><h1>{icon} {title}</h1></div>', unsafe_allow_html=True)
 
-    # SVG Banner
-    st.markdown("""
-    <div class="banner-container">
-    <svg viewBox="0 0 2200 350" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style="width:100%;min-width:1200px;">
-        <rect width="2200" height="350" fill="#0a0a0a"/>
+
+def info(html):
+    st.markdown(f'<div class="info-card">{html}</div>', unsafe_allow_html=True)
+
+
+# ══════════════════════════════════════════════════
+# REDIRECCIONES 404
+# ══════════════════════════════════════════════════
+def page_auditoria():
+    page_header("🔍", "Redirecciones 404")
+
+    # SVG banner
+    st.markdown("""<div class="svg-banner">
+    <svg viewBox="0 0 1850 350" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style="width:100%;min-width:900px;">
+        <rect width="1850" height="350" fill="#111"/>
         <defs>
-            <marker id="ah" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><polygon points="0 0,10 3,0 6" fill="#888"/></marker>
-            <marker id="ahr" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><polygon points="0 0,10 3,0 6" fill="#ff6b6b"/></marker>
-            <marker id="ahg" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><polygon points="0 0,10 3,0 6" fill="#4ade80"/></marker>
+            <marker id="a1" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><polygon points="0 0,10 3,0 6" fill="#555"/></marker>
+            <marker id="a2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><polygon points="0 0,10 3,0 6" fill="#ff6b6b"/></marker>
+            <marker id="a3" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><polygon points="0 0,10 3,0 6" fill="#4ade80"/></marker>
         </defs>
-        <circle cx="50" cy="175" r="25" fill="#1a1a1a" stroke="#4a9eff" stroke-width="2"/><text x="50" y="180" font-family="Rubik,sans-serif" font-size="12" font-weight="600" fill="#4a9eff" text-anchor="middle">Inicio</text>
-        <line x1="75" y1="175" x2="115" y2="175" stroke="#888" stroke-width="2" marker-end="url(#ah)"/>
-        <rect x="115" y="155" width="120" height="40" rx="4" fill="#1a1a1a" stroke="#888" stroke-width="2"/><text x="175" y="182" font-family="Rubik,sans-serif" font-size="11" fill="#e0e0e0" text-anchor="middle">Identificar 404</text>
-        <line x1="235" y1="175" x2="275" y2="175" stroke="#888" stroke-width="2" marker-end="url(#ah)"/>
-        <rect x="275" y="155" width="130" height="40" rx="4" fill="#1a1a1a" stroke="#888" stroke-width="2"/><text x="340" y="182" font-family="Rubik,sans-serif" font-size="11" fill="#e0e0e0" text-anchor="middle">Revisar GSC</text>
-        <line x1="405" y1="175" x2="445" y2="175" stroke="#888" stroke-width="2" marker-end="url(#ah)"/>
-        <polygon points="495,175 545,145 595,175 545,205" fill="#1a1a1a" stroke="#ffcc00" stroke-width="2"/><text x="545" y="180" font-family="Rubik,sans-serif" font-size="10" font-weight="600" fill="#ffcc00" text-anchor="middle">¿Válido?</text>
-        <line x1="545" y1="205" x2="545" y2="260" stroke="#ff6b6b" stroke-width="2" marker-end="url(#ahr)"/><text x="555" y="235" font-family="Rubik,sans-serif" font-size="10" fill="#ff6b6b" font-weight="600">No</text>
-        <rect x="460" y="260" width="170" height="35" rx="4" fill="#1a1a1a" stroke="#ff6b6b" stroke-width="2"/><text x="545" y="283" font-family="Rubik,sans-serif" font-size="10" fill="#ff6b6b" text-anchor="middle">Descartar</text>
-        <line x1="595" y1="175" x2="635" y2="175" stroke="#4ade80" stroke-width="2" marker-end="url(#ahg)"/><text x="610" y="165" font-family="Rubik,sans-serif" font-size="10" fill="#4ade80" font-weight="600">Sí</text>
-        <rect x="635" y="155" width="120" height="40" rx="4" fill="#1a1a1a" stroke="#888" stroke-width="2"/><text x="695" y="182" font-family="Rubik,sans-serif" font-size="11" fill="#e0e0e0" text-anchor="middle">Crear Ticket</text>
-        <line x1="755" y1="175" x2="795" y2="175" stroke="#888" stroke-width="2" marker-end="url(#ah)"/>
-        <rect x="795" y="155" width="120" height="40" rx="4" fill="#1a1a1a" stroke="#888" stroke-width="2"/><text x="855" y="182" font-family="Rubik,sans-serif" font-size="11" fill="#e0e0e0" text-anchor="middle">Definir Tipo</text>
-        <line x1="915" y1="175" x2="955" y2="175" stroke="#888" stroke-width="2" marker-end="url(#ah)"/>
-        <rect x="955" y="155" width="110" height="40" rx="4" fill="#1a1a1a" stroke="#888" stroke-width="2"/><text x="1010" y="182" font-family="Rubik,sans-serif" font-size="11" fill="#e0e0e0" text-anchor="middle">Enviar</text>
-        <line x1="1065" y1="175" x2="1105" y2="175" stroke="#888" stroke-width="2" marker-end="url(#ah)"/>
-        <rect x="1105" y="155" width="120" height="40" rx="4" fill="#1a1a1a" stroke="#888" stroke-width="2"/><text x="1165" y="177" font-family="Rubik,sans-serif" font-size="10" fill="#e0e0e0" text-anchor="middle">Esperar</text><text x="1165" y="191" font-family="Rubik,sans-serif" font-size="8" fill="#888" text-anchor="middle">(1-2 días)</text>
-        <line x1="1225" y1="175" x2="1265" y2="175" stroke="#888" stroke-width="2" marker-end="url(#ah)"/>
-        <rect x="1265" y="155" width="130" height="40" rx="4" fill="#1a1a1a" stroke="#888" stroke-width="2"/><text x="1330" y="182" font-family="Rubik,sans-serif" font-size="11" fill="#e0e0e0" text-anchor="middle">Implementar</text>
-        <line x1="1395" y1="175" x2="1435" y2="175" stroke="#888" stroke-width="2" marker-end="url(#ah)"/>
-        <rect x="1435" y="155" width="110" height="40" rx="4" fill="#1a1a1a" stroke="#888" stroke-width="2"/><text x="1490" y="182" font-family="Rubik,sans-serif" font-size="11" fill="#e0e0e0" text-anchor="middle">Validar</text>
-        <line x1="1545" y1="175" x2="1585" y2="175" stroke="#888" stroke-width="2" marker-end="url(#ah)"/>
-        <rect x="1585" y="155" width="110" height="40" rx="4" fill="#1a1a1a" stroke="#888" stroke-width="2"/><text x="1640" y="182" font-family="Rubik,sans-serif" font-size="11" fill="#e0e0e0" text-anchor="middle">Cerrar</text>
-        <line x1="1695" y1="175" x2="1735" y2="175" stroke="#888" stroke-width="2" marker-end="url(#ah)"/>
-        <circle cx="1785" cy="175" r="25" fill="#1a1a1a" stroke="#4ade80" stroke-width="2"/><text x="1785" y="180" font-family="Rubik,sans-serif" font-size="12" font-weight="600" fill="#4ade80" text-anchor="middle">Fin</text>
-    </svg>
-    </div>
-    """, unsafe_allow_html=True)
+        <circle cx="50" cy="175" r="22" fill="#1a1a1a" stroke="#4a9eff" stroke-width="2"/><text x="50" y="180" font-family="Rubik,sans-serif" font-size="11" font-weight="600" fill="#4a9eff" text-anchor="middle">Inicio</text>
+        <line x1="72" y1="175" x2="112" y2="175" stroke="#555" stroke-width="2" marker-end="url(#a1)"/>
+        <rect x="112" y="155" width="115" height="40" rx="6" fill="#1a1a1a" stroke="#333" stroke-width="1.5"/><text x="170" y="180" font-family="Rubik,sans-serif" font-size="11" fill="#ccc" text-anchor="middle">Identificar 404</text>
+        <line x1="227" y1="175" x2="267" y2="175" stroke="#555" stroke-width="2" marker-end="url(#a1)"/>
+        <rect x="267" y="155" width="115" height="40" rx="6" fill="#1a1a1a" stroke="#333" stroke-width="1.5"/><text x="325" y="180" font-family="Rubik,sans-serif" font-size="11" fill="#ccc" text-anchor="middle">Revisar GSC</text>
+        <line x1="382" y1="175" x2="422" y2="175" stroke="#555" stroke-width="2" marker-end="url(#a1)"/>
+        <polygon points="470,175 520,145 570,175 520,205" fill="#1a1a1a" stroke="#eab308" stroke-width="2"/><text x="520" y="180" font-family="Rubik,sans-serif" font-size="10" font-weight="600" fill="#eab308" text-anchor="middle">¿Válido?</text>
+        <line x1="520" y1="205" x2="520" y2="260" stroke="#ff6b6b" stroke-width="2" marker-end="url(#a2)"/><text x="530" y="238" font-family="Rubik,sans-serif" font-size="10" fill="#ff6b6b" font-weight="600">No</text>
+        <rect x="440" y="262" width="160" height="32" rx="6" fill="#1a1a1a" stroke="#ff6b6b" stroke-width="1.5"/><text x="520" y="283" font-family="Rubik,sans-serif" font-size="10" fill="#ff6b6b" text-anchor="middle">Descartar</text>
+        <line x1="570" y1="175" x2="610" y2="175" stroke="#4ade80" stroke-width="2" marker-end="url(#a3)"/><text x="586" y="165" font-family="Rubik,sans-serif" font-size="10" fill="#4ade80" font-weight="600">Sí</text>
+        <rect x="610" y="155" width="110" height="40" rx="6" fill="#1a1a1a" stroke="#333" stroke-width="1.5"/><text x="665" y="180" font-family="Rubik,sans-serif" font-size="11" fill="#ccc" text-anchor="middle">Crear Ticket</text>
+        <line x1="720" y1="175" x2="760" y2="175" stroke="#555" stroke-width="2" marker-end="url(#a1)"/>
+        <rect x="760" y="155" width="110" height="40" rx="6" fill="#1a1a1a" stroke="#333" stroke-width="1.5"/><text x="815" y="180" font-family="Rubik,sans-serif" font-size="11" fill="#ccc" text-anchor="middle">Definir Tipo</text>
+        <line x1="870" y1="175" x2="910" y2="175" stroke="#555" stroke-width="2" marker-end="url(#a1)"/>
+        <rect x="910" y="155" width="100" height="40" rx="6" fill="#1a1a1a" stroke="#333" stroke-width="1.5"/><text x="960" y="180" font-family="Rubik,sans-serif" font-size="11" fill="#ccc" text-anchor="middle">Enviar</text>
+        <line x1="1010" y1="175" x2="1050" y2="175" stroke="#555" stroke-width="2" marker-end="url(#a1)"/>
+        <rect x="1050" y="155" width="115" height="40" rx="6" fill="#1a1a1a" stroke="#333" stroke-width="1.5"/><text x="1108" y="176" font-family="Rubik,sans-serif" font-size="10" fill="#ccc" text-anchor="middle">Esperar</text><text x="1108" y="190" font-family="Rubik,sans-serif" font-size="8" fill="#666" text-anchor="middle">(1-2 días)</text>
+        <line x1="1165" y1="175" x2="1205" y2="175" stroke="#555" stroke-width="2" marker-end="url(#a1)"/>
+        <rect x="1205" y="155" width="120" height="40" rx="6" fill="#1a1a1a" stroke="#333" stroke-width="1.5"/><text x="1265" y="180" font-family="Rubik,sans-serif" font-size="11" fill="#ccc" text-anchor="middle">Implementar</text>
+        <line x1="1325" y1="175" x2="1365" y2="175" stroke="#555" stroke-width="2" marker-end="url(#a1)"/>
+        <rect x="1365" y="155" width="100" height="40" rx="6" fill="#1a1a1a" stroke="#333" stroke-width="1.5"/><text x="1415" y="180" font-family="Rubik,sans-serif" font-size="11" fill="#ccc" text-anchor="middle">Validar</text>
+        <line x1="1465" y1="175" x2="1505" y2="175" stroke="#555" stroke-width="2" marker-end="url(#a1)"/>
+        <rect x="1505" y="155" width="100" height="40" rx="6" fill="#1a1a1a" stroke="#333" stroke-width="1.5"/><text x="1555" y="180" font-family="Rubik,sans-serif" font-size="11" fill="#ccc" text-anchor="middle">Cerrar</text>
+        <line x1="1605" y1="175" x2="1645" y2="175" stroke="#555" stroke-width="2" marker-end="url(#a1)"/>
+        <circle cx="1685" cy="175" r="22" fill="#1a1a1a" stroke="#4ade80" stroke-width="2"/><text x="1685" y="180" font-family="Rubik,sans-serif" font-size="11" font-weight="600" fill="#4ade80" text-anchor="middle">Fin</text>
+    </svg></div>""", unsafe_allow_html=True)
 
     with st.expander("📋 Información General 404", expanded=True):
-        st.markdown("""
-**¿Qué es un Error 404?**
-
-Un error 404 (Not Found) ocurre cuando un usuario intenta acceder a una página que no existe en tu servidor. Esto puede suceder por varias razones: URLs rotas, contenido eliminado, cambios en la estructura del sitio, o enlaces externos desactualizados.
-
-**¿Por Qué las Redirecciones 404 Importan?**
-- **Experiencia del Usuario:** Un 404 sin redirección crea frustración en los visitantes.
-- **Pérdida de Autoridad SEO:** Los enlaces rotos disipan la autoridad de página (link juice).
-- **Rastreo Ineficiente:** Google rastrea más URLs 404 que productivas, desperdiciando crawl budget.
-- **Impacto en Conversiones:** Los usuarios abandonan sitios con demasiados errores 404.
-- **Señal de Mantenimiento:** Los errores indican falta de cuidado y actualización del sitio.
-
-**Tipos de Redirecciones**
-- **Redirección 301 (Movido Permanentemente):** Transfiere el 90-99% de la autoridad de página.
-- **Redirección 302 (Movido Temporalmente):** Se usa para cambios temporales.
-- **Redirección 307 (Temporal):** Similar a 302 pero más estricto con el método HTTP.
-- **Redirección Meta Refresh:** Se ejecuta en el navegador. No es recomendada para SEO.
-- **Redirección JavaScript:** Implementada con código JS. Menos ideal para SEO.
-        """)
+        info("""
+        <h3>¿Qué es un Error 404?</h3>
+        <p>Un error 404 (Not Found) ocurre cuando un usuario intenta acceder a una página que no existe. Gestionar correctamente estos errores es crucial para mantener buena experiencia de usuario y SEO.</p>
+        <h3>¿Por qué importan?</h3>
+        <ul>
+            <li><strong>Experiencia del Usuario:</strong> Un 404 sin redirección crea frustración.</li>
+            <li><strong>Pérdida de Autoridad SEO:</strong> Los enlaces rotos disipan link juice.</li>
+            <li><strong>Rastreo Ineficiente:</strong> Google desperdicia crawl budget en URLs 404.</li>
+            <li><strong>Impacto en Conversiones:</strong> Los usuarios abandonan sitios con errores.</li>
+        </ul>
+        <h3>Tipos de Redirecciones</h3>
+        <ul>
+            <li><strong>301 (Permanente):</strong> Transfiere 90-99% de autoridad. La opción preferida.</li>
+            <li><strong>302 (Temporal):</strong> Para cambios temporales.</li>
+            <li><strong>307 (Temporal):</strong> Similar a 302, más estricto con método HTTP.</li>
+            <li><strong>Meta Refresh / JavaScript:</strong> No recomendadas para SEO.</li>
+        </ul>""")
 
     with st.expander("🔄 Proceso de Redirección"):
-        st.markdown("### Mapa de Procesos — Redirección 404 en adidas")
-        st.markdown("**Objetivo:** Gestionar correctamente solicitudes de redirecciones 404 para asegurar una buena experiencia de usuario y minimizar impactos SEO.")
+        info("<h3>Objetivo</h3><p>Gestionar solicitudes de redirecciones 404 para asegurar buena experiencia de usuario y minimizar impactos SEO.</p>")
 
-        st.markdown("""
-<div class="process-flow">Inicio
+        st.markdown("""<div class="flow-box">Inicio
    ↓
 Identificación de URL 404
    ↓
@@ -318,608 +351,413 @@ Revisar información en Google Search Console
    ↓
 ¿La redirección es válida?
    ├── No → Descartar solicitud / reevaluar destino
-   └── Sí
-          ↓
-Ir al template/formato de Confluence
+   └── Sí → Ir al template de Confluence
           ↓
 Completar ticket de redirección
           ↓
-Definir tipo de redirección:
-   ├── Directa
-   └── Dinámica
+Definir tipo: Directa o Dinámica
           ↓
-Enviar ticket
+Enviar ticket → Esperar 1-2 días hábiles
           ↓
-Esperar respuesta del equipo responsable
-(1–2 días hábiles aprox.)
+Implementación → Validar → Cerrar
           ↓
-Implementación de la redirección
-          ↓
-Validar funcionamiento:
-   ├── Status code correcto
-   ├── URL destino correcta
-   ├── Sin loops ni errores
-   └── Validación SEO básica
-          ↓
-Agregar comentario de confirmación en el ticket
-          ↓
-Cerrar proceso
-          ↓
-Fin</div>
-        """, unsafe_allow_html=True)
+Fin</div>""", unsafe_allow_html=True)
 
-        st.markdown("**URL importante:**")
-        st.markdown("[CDN Service Catalog - Confluence](https://confluence.tools.3stripes.net/spaces/CDN/pages/1613803193/CDN+Service+Catalog)")
-        st.caption("Dependiendo del objetivo que quieras, ya sea eliminar una redirección actual o crear una nueva deberás ver su opción correspondiente al hacer scroll down")
+        info("""
+        <h3>URL importante</h3>
+        <p><a href="https://confluence.tools.3stripes.net/spaces/CDN/pages/1613803193/CDN+Service+Catalog" target="_blank">📎 CDN Service Catalog — Confluence</a></p>
+        <p>Dependiendo del objetivo (eliminar o crear redirección), ver la opción correspondiente al hacer scroll down.</p>
 
-        st.markdown("""
-**1. Validación de Redirección**
-- Revisar Google Search Console
-- Analizar tráfico e intención de búsqueda
-- Verificar similitud entre URL origen y destino
-- Evitar redirecciones irrelevantes o masivas al homepage
+        <h3>Tipos de Redirección</h3>
+        <p><strong>Directa:</strong> URL específica → URL específica</p>
+        <p><strong>Dinámica:</strong> Basada en patrones o reglas</p>
 
-**2. Creación del Ticket** — Herramienta: Confluence
+        <h3>QA y Validación Final</h3>
+        <ul>
+            <li>Redirección 301 correcta y destino funcional</li>
+            <li>Sin cadenas de redirección ni loops</li>
+            <li>Correcto en desktop y mobile</li>
+            <li>Herramientas: Redirect Path, DevTools, Screaming Frog, GSC</li>
+        </ul>""")
 
-**3. Definición del Tipo de Redirección**
-""")
-        st.markdown('<div class="code-block">/producto-viejo → /producto-nuevo</div>', unsafe_allow_html=True)
-        st.markdown('<div class="code-block">/outlet/* → /sale/*</div>', unsafe_allow_html=True)
-        st.markdown("""
-**4. Espera de Implementación** — 1–2 días hábiles
+    with st.expander("👥 Contactos"):
+        st.warning("En caso **URGENTE**, contactar por Teams:")
+        info("""<ul>
+            <li><strong>Geison Garzón:</strong> Geison.Garzon@externals.adidas.com</li>
+            <li><strong>Oksana Tretiak:</strong> Oksana.Tretiak@externals.adidas.com</li>
+        </ul>""")
 
-**5. QA y Validación Final**
-- Redirección 301 correcta, destino funcional, sin cadenas ni loops
-- Herramientas: Redirect Path, DevTools, Screaming Frog, GSC
-
-**6. Cierre del Ticket** — Confirmar, comentar, marcar completado
-        """)
-
-    with st.expander("👥 Contactos o Stakeholders"):
-        st.warning("En caso URGENTE, contactar por TEAMs:")
-        st.markdown("""
-- **Geison Garzón:** Geison.Garzon@externals.adidas.com
-- **Oksana Tretiak:** Oksana.Tretiak@externals.adidas.com
-        """)
-
-    word_data = generate_word("Redirecciones 404", [
+    word_btn("Redirecciones 404", [
         ("Información General", [
-            {"type": "paragraph", "text": "Un error 404 ocurre cuando un usuario intenta acceder a una página que no existe. Gestionar correctamente estos errores es crucial para SEO."},
-            {"type": "bullet", "text": "Experiencia del Usuario: Un 404 sin redirección crea frustración."},
-            {"type": "bullet", "text": "Pérdida de Autoridad SEO: Los enlaces rotos disipan link juice."},
-            {"type": "bullet", "text": "Rastreo Ineficiente: Google desperdicia crawl budget."},
+            {"type": "p", "text": "Un error 404 ocurre cuando un usuario accede a una página inexistente."},
+            {"type": "li", "text": "Experiencia del Usuario: frustración."},
+            {"type": "li", "text": "Pérdida de Autoridad SEO: disipa link juice."},
+            {"type": "li", "text": "Rastreo Ineficiente: desperdicia crawl budget."},
         ]),
-        ("Proceso de Redirección", [
-            {"type": "paragraph", "text": "Objetivo: Gestionar correctamente solicitudes de redirecciones 404."},
-            {"type": "heading3", "text": "1. Validación de Redirección"},
-            {"type": "bullet", "text": "Revisar Google Search Console"},
-            {"type": "bullet", "text": "Analizar tráfico e intención de búsqueda"},
-            {"type": "heading3", "text": "2. Creación del Ticket en Confluence"},
-            {"type": "heading3", "text": "3. Definición del Tipo de Redirección"},
-            {"type": "code", "text": "/producto-viejo → /producto-nuevo\n/outlet/* → /sale/*"},
-            {"type": "heading3", "text": "4. Espera de Implementación (1-2 días)"},
-            {"type": "heading3", "text": "5. QA y Validación Final"},
-            {"type": "heading3", "text": "6. Cierre del Ticket"},
+        ("Proceso", [
+            {"type": "li", "text": "1. Validación → 2. Crear Ticket → 3. Definir Tipo → 4. Enviar → 5. Validar → 6. Cerrar"},
         ]),
         ("Contactos", [
-            {"type": "bullet", "text": "Geison Garzón: Geison.Garzon@externals.adidas.com"},
-            {"type": "bullet", "text": "Oksana Tretiak: Oksana.Tretiak@externals.adidas.com"},
+            {"type": "li", "text": "Geison Garzón: Geison.Garzon@externals.adidas.com"},
+            {"type": "li", "text": "Oksana Tretiak: Oksana.Tretiak@externals.adidas.com"},
         ]),
-    ])
-    st.download_button("📥 Descargar Word", word_data, "Redirecciones_404.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+    ], "Redirecciones_404.docx")
 
 
-# ──────────────────────────────────────────────
-# PAGE: ESTRUCTURA DE URLs
-# ──────────────────────────────────────────────
-def render_urls():
-    back_button()
-    st.title("🔗 Estructura de URLs")
-
-    with st.expander("📋 Información General", expanded=True):
-        st.markdown("""
-**Importancia de una Estructura de URLs Óptima**
-
-La estructura de las URLs es un elemento fundamental del SEO técnico. Las URLs bien estructuradas no solo ayudan a los motores de búsqueda a entender la jerarquía y contenido de tu sitio, sino que también mejoran la experiencia del usuario.
-
-**Principios de una Estructura URL Ideal**
-- **Claridad:** Las URLs deben ser descriptivas y fáciles de entender.
-- **Brevedad:** Evita URLs demasiado largas; idealmente menos de 75 caracteres.
-- **Palabras Clave:** Incluye términos relevantes que describan el contenido.
-- **Guiones en lugar de guiones bajos:** Utiliza guiones (-) para separar palabras.
-- **Minúsculas:** Mantén todas las URLs en minúsculas.
-- **Sin parámetros innecesarios:** Minimiza parámetros de consulta.
-- **Estructura lógica:** Organiza las URLs siguiendo la jerarquía del sitio.
-
-**Ejemplos**
-- ✅ ejemplo.com/blog/seo-tecnico-guia-completa
-- ✅ ejemplo.com/servicios/consultoria-seo
-- ❌ ejemplo.com/p?id=123&cat=seo
-- ❌ ejemplo.com/blog_post_seo_tecnico
-
-**Canonicalización de URLs**
-
-Implementa etiquetas canónicas para evitar problemas de contenido duplicado. Esta etiqueta le indica a los buscadores cuál es la versión preferida de una página.
-        """)
-
-    word_data = generate_word("Estructura de URLs", [
-        ("Principios", [
-            {"type": "bullet", "text": "Claridad: URLs descriptivas y fáciles de entender."},
-            {"type": "bullet", "text": "Brevedad: Menos de 75 caracteres."},
-            {"type": "bullet", "text": "Palabras Clave: Términos relevantes."},
-            {"type": "bullet", "text": "Guiones (-) en lugar de guiones bajos (_)."},
-            {"type": "bullet", "text": "Minúsculas siempre."},
-        ]),
-    ])
-    st.download_button("📥 Descargar Word", word_data, "Estructura_URLs.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+# ══════════════════════════════════════════════════
+# URLS
+# ══════════════════════════════════════════════════
+def page_urls():
+    page_header("🔗", "Estructura de URLs")
+    with st.expander("📋 Principios y Buenas Prácticas", expanded=True):
+        info("""
+        <h3>Importancia</h3>
+        <p>Las URLs bien estructuradas ayudan a los motores de búsqueda a entender la jerarquía del sitio y mejoran la experiencia del usuario.</p>
+        <h3>Principios de una URL Ideal</h3>
+        <ul>
+            <li><strong>Claridad:</strong> Descriptivas y fáciles de entender.</li>
+            <li><strong>Brevedad:</strong> Menos de 75 caracteres.</li>
+            <li><strong>Palabras Clave:</strong> Términos relevantes del contenido.</li>
+            <li><strong>Guiones (-):</strong> Separar palabras con guiones, no guiones bajos.</li>
+            <li><strong>Minúsculas:</strong> Siempre en minúsculas.</li>
+            <li><strong>Sin parámetros innecesarios.</strong></li>
+        </ul>
+        <h3>Ejemplos</h3>
+        <ul>
+            <li>✅ ejemplo.com/blog/seo-tecnico-guia-completa</li>
+            <li>✅ ejemplo.com/servicios/consultoria-seo</li>
+            <li>❌ ejemplo.com/p?id=123&cat=seo</li>
+            <li>❌ ejemplo.com/blog_post_seo_tecnico</li>
+        </ul>
+        <h3>Canonicalización</h3>
+        <p>Implementar etiquetas canónicas para evitar contenido duplicado. Indica a los buscadores la versión preferida de cada página.</p>""")
+    word_btn("Estructura de URLs", [("Principios", [{"type": "li", "text": "Claridad, Brevedad, Keywords, Guiones, Minúsculas"}])], "Estructura_URLs.docx")
 
 
-# ──────────────────────────────────────────────
-# PAGE: MOBILE OPTIMIZATION
-# ──────────────────────────────────────────────
-def render_mobile():
-    back_button()
-    st.title("📱 Mobile Optimization")
-
-    with st.expander("📋 Mobile-First en SEO", expanded=True):
-        st.markdown("""
-Google utiliza indexación **Mobile-First**, lo que significa que el rastreador de Google ve y indexa principalmente la versión móvil de tu sitio.
-
-**Core Web Vitals**
-- **LCP (Largest Contentful Paint):** Velocidad de carga → Objetivo: < 2.5s
-- **FID (First Input Delay):** Interactividad → Objetivo: < 100ms
-- **CLS (Cumulative Layout Shift):** Estabilidad visual → Objetivo: < 0.1
-
-**Checklist de Optimización Móvil**
-- Implementar diseño responsive para todos los tamaños de pantalla
-- Asegurar que el texto sea legible sin necesidad de zoom
-- Optimizar imágenes para conexiones lentas
-- Evitar intersticiales intrusivos
-- Usar botones con tamaño adecuado para tocar
-- Minimizar redirecciones y código innecesario
-- Probar en dispositivos reales y emuladores
-
-**Testing Móvil:** Usa Google Mobile-Friendly Test, Lighthouse y Chrome DevTools.
-        """)
-
-    word_data = generate_word("Mobile Optimization", [
-        ("Core Web Vitals", [
-            {"type": "bullet", "text": "LCP: Velocidad de carga → < 2.5s"},
-            {"type": "bullet", "text": "FID: Interactividad → < 100ms"},
-            {"type": "bullet", "text": "CLS: Estabilidad visual → < 0.1"},
-        ]),
-    ])
-    st.download_button("📥 Descargar Word", word_data, "Mobile_Optimization.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+# ══════════════════════════════════════════════════
+# MOBILE
+# ══════════════════════════════════════════════════
+def page_mobile():
+    page_header("📱", "Mobile Optimization")
+    with st.expander("📋 Mobile-First & Core Web Vitals", expanded=True):
+        info("""
+        <h3>Mobile-First</h3>
+        <p>Google indexa principalmente la versión móvil de tu sitio. La optimización móvil es esencial.</p>
+        <h3>Core Web Vitals</h3>
+        <ul>
+            <li><strong>LCP (Largest Contentful Paint):</strong> Velocidad de carga → &lt; 2.5s</li>
+            <li><strong>FID (First Input Delay):</strong> Interactividad → &lt; 100ms</li>
+            <li><strong>CLS (Cumulative Layout Shift):</strong> Estabilidad visual → &lt; 0.1</li>
+        </ul>
+        <h3>Checklist</h3>
+        <ul>
+            <li>Diseño responsive para todos los tamaños</li>
+            <li>Texto legible sin zoom</li>
+            <li>Imágenes optimizadas para conexiones lentas</li>
+            <li>Sin intersticiales intrusivos</li>
+            <li>Botones con tamaño adecuado para tocar</li>
+            <li>Minimizar redirecciones y código innecesario</li>
+        </ul>
+        <p><strong>Testing:</strong> Google Mobile-Friendly Test, Lighthouse, Chrome DevTools.</p>""")
+    word_btn("Mobile Optimization", [("Core Web Vitals", [{"type": "li", "text": "LCP < 2.5s, FID < 100ms, CLS < 0.1"}])], "Mobile_Optimization.docx")
 
 
-# ──────────────────────────────────────────────
-# PAGE: RENDIMIENTO
-# ──────────────────────────────────────────────
-def render_rendimiento():
-    back_button()
-    st.title("🚀 Rendimiento")
-
+# ══════════════════════════════════════════════════
+# RENDIMIENTO
+# ══════════════════════════════════════════════════
+def page_rendimiento():
+    page_header("🚀", "Rendimiento")
     with st.expander("📋 Velocidad como Factor de Ranking", expanded=True):
-        st.markdown("""
-La velocidad de un sitio web es un factor directo de ranking en Google. Un sitio lento incrementa la tasa de rebote y reduce las conversiones.
-
-**Estrategias de Optimización**
-- **Compresión de Imágenes:** Formatos como WebP.
-- **Minificación:** Reduce CSS, JavaScript y HTML.
-- **Lazy Loading:** Carga contenido solo cuando es visible.
-- **Caching:** Cachés a nivel de navegador y servidor.
-- **CDN:** Distribuye contenido desde servidores cercanos.
-- **Code Splitting:** Divide JavaScript en fragmentos.
-- **Eliminación de Render-Blocking:** Optimiza recursos críticos.
-
-**Herramientas de Monitoreo**
-- Google PageSpeed Insights
-- Google Lighthouse
-- WebPageTest
-- GTmetrix
-- Pingdom
-
-**Impacto:** Cada segundo de delay puede disminuir las conversiones entre 4-7%.
-        """)
-
-    word_data = generate_word("Rendimiento", [
-        ("Estrategias", [
-            {"type": "bullet", "text": "Compresión de Imágenes (WebP)"},
-            {"type": "bullet", "text": "Minificación de CSS/JS/HTML"},
-            {"type": "bullet", "text": "Lazy Loading"},
-            {"type": "bullet", "text": "Caching"},
-            {"type": "bullet", "text": "CDN"},
-        ]),
-    ])
-    st.download_button("📥 Descargar Word", word_data, "Rendimiento.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+        info("""
+        <h3>Estrategias de Optimización</h3>
+        <ul>
+            <li><strong>Compresión de Imágenes:</strong> Formatos WebP.</li>
+            <li><strong>Minificación:</strong> Reducir CSS, JS y HTML.</li>
+            <li><strong>Lazy Loading:</strong> Cargar contenido al ser visible.</li>
+            <li><strong>Caching:</strong> Cachés de navegador y servidor.</li>
+            <li><strong>CDN:</strong> Servidores cercanos a los usuarios.</li>
+            <li><strong>Code Splitting:</strong> Dividir JavaScript.</li>
+            <li><strong>Eliminar Render-Blocking:</strong> Optimizar recursos críticos.</li>
+        </ul>
+        <h3>Herramientas</h3>
+        <ul>
+            <li>Google PageSpeed Insights</li>
+            <li>Google Lighthouse</li>
+            <li>WebPageTest / GTmetrix / Pingdom</li>
+        </ul>
+        <p><strong>Impacto:</strong> Cada segundo de delay puede disminuir conversiones entre 4-7%.</p>""")
+    word_btn("Rendimiento", [("Estrategias", [{"type": "li", "text": "Compresión, Minificación, Lazy Loading, Caching, CDN"}])], "Rendimiento.docx")
 
 
-# ──────────────────────────────────────────────
-# PAGE: METADATA & SCHEMA
-# ──────────────────────────────────────────────
-def render_metadata():
-    back_button()
-    st.title("🏷️ Metadata & Schema")
-
-    with st.expander("📋 Metadata: El Puente con los Buscadores", expanded=True):
-        st.markdown("""
-Los meta tags son etiquetas HTML que proporcionan información sobre el contenido de tu página. Son cruciales para el SEO.
-
-**Meta Tags Esenciales**
-- **Title Tag:** Máximo 60-70 caracteres. Incluir palabras clave principales.
-- **Meta Description:** 150-160 caracteres. Atractivo para mejorar CTR.
-- **Meta Keywords:** Menos importante ahora, pero buena práctica.
-- **Meta Robots:** Controla rastreo e indexación.
-- **Open Graph Tags:** Optimiza compartir en redes sociales.
-- **Twitter Card Tags:** Específicas para Twitter.
-
-**Schema Markup (Datos Estructurados)**
-
-Ayudan a los motores de búsqueda a entender mejor el contenido. Puede resultar en rich snippets.
-- Schema Organization
-- Schema Product
-- Schema Article
-- Schema FAQ
-- Schema LocalBusiness
-- Schema Review
-
-**JSON-LD vs Microdata:** JSON-LD es el formato recomendado por Google. Más fácil de implementar y mantener.
-        """)
-
-    word_data = generate_word("Metadata & Schema", [
-        ("Meta Tags Esenciales", [
-            {"type": "bullet", "text": "Title Tag: 60-70 caracteres con keywords"},
-            {"type": "bullet", "text": "Meta Description: 150-160 caracteres"},
-            {"type": "bullet", "text": "Meta Robots, Open Graph, Twitter Cards"},
-        ]),
-        ("Schema Markup", [
-            {"type": "bullet", "text": "Organization, Product, Article, FAQ, LocalBusiness, Review"},
-            {"type": "paragraph", "text": "JSON-LD es el formato recomendado por Google."},
-        ]),
-    ])
-    st.download_button("📥 Descargar Word", word_data, "Metadata_Schema.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+# ══════════════════════════════════════════════════
+# METADATA
+# ══════════════════════════════════════════════════
+def page_metadata():
+    page_header("🏷️", "Metadata & Schema")
+    with st.expander("📋 Meta Tags & Datos Estructurados", expanded=True):
+        info("""
+        <h3>Meta Tags Esenciales</h3>
+        <ul>
+            <li><strong>Title Tag:</strong> 60-70 caracteres con keywords principales.</li>
+            <li><strong>Meta Description:</strong> 150-160 caracteres, atractivo para CTR.</li>
+            <li><strong>Meta Robots:</strong> Controla rastreo e indexación.</li>
+            <li><strong>Open Graph:</strong> Optimiza compartir en redes sociales.</li>
+            <li><strong>Twitter Cards:</strong> Específicas para Twitter/X.</li>
+        </ul>
+        <h3>Schema Markup</h3>
+        <p>Datos estructurados que ayudan a los buscadores a entender el contenido. Puede resultar en rich snippets.</p>
+        <ul>
+            <li>Organization, Product, Article, FAQ, LocalBusiness, Review</li>
+        </ul>
+        <p><strong>JSON-LD</strong> es el formato recomendado por Google. Más fácil de implementar que Microdata.</p>""")
+    word_btn("Metadata & Schema", [("Meta Tags", [{"type": "li", "text": "Title, Description, Robots, Open Graph, Twitter Cards, Schema"}])], "Metadata_Schema.docx")
 
 
-# ──────────────────────────────────────────────
-# PAGE: INDEXACIÓN
-# ──────────────────────────────────────────────
-def render_indexacion():
-    back_button()
-    st.title("📑 Indexación")
-
-    with st.expander("📋 ¿Qué es la Indexación?", expanded=True):
-        st.markdown("""
-La indexación es el proceso mediante el cual los motores de búsqueda descubren, rastrean y añaden páginas a su base de datos.
-
-**Archivo Robots.txt**
-- Define qué carpetas o archivos deben ser evitados
-- Especifica la ubicación del sitemap XML
-- Controla la velocidad de rastreo (crawl delay)
-- Previene indexación de contenido duplicado o privado
-
-**Sitemap XML**
-- Incluye todas las URLs principales del sitio
-- Proporciona metadatos como fecha de última modificación
-- Define la prioridad relativa de páginas
-- Declara frequency de actualización sugerida
-
-**Gestión de Crawl Budget**
-- Elimina páginas duplicadas o de bajo valor
-- Bloquea parámetros de sesión innecesarios
-- Utiliza redirects 301 en lugar de content duplicado
-- Monitorea el rastreo en Google Search Console
-
-**Exclusión Inteligente:** No todas las páginas deben ser indexadas. Excluir páginas innecesarias mejora la eficiencia.
-        """)
-
-    word_data = generate_word("Indexación", [
-        ("Robots.txt", [{"type": "bullet", "text": "Define carpetas a evitar, ubicación del sitemap, crawl delay"}]),
-        ("Sitemap XML", [{"type": "bullet", "text": "URLs principales, metadatos, prioridad, frequency"}]),
-        ("Crawl Budget", [{"type": "bullet", "text": "Eliminar duplicados, bloquear parámetros, usar 301s, monitorear GSC"}]),
-    ])
-    st.download_button("📥 Descargar Word", word_data, "Indexacion.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+# ══════════════════════════════════════════════════
+# INDEXACIÓN
+# ══════════════════════════════════════════════════
+def page_indexacion():
+    page_header("📑", "Indexación")
+    with st.expander("📋 Robots.txt, Sitemap & Crawl Budget", expanded=True):
+        info("""
+        <h3>¿Qué es la Indexación?</h3>
+        <p>Proceso mediante el cual los motores de búsqueda descubren, rastrean y añaden páginas a su base de datos.</p>
+        <h3>Robots.txt</h3>
+        <ul>
+            <li>Define carpetas/archivos a evitar</li>
+            <li>Especifica ubicación del sitemap XML</li>
+            <li>Controla crawl delay</li>
+            <li>Previene indexación de contenido duplicado</li>
+        </ul>
+        <h3>Sitemap XML</h3>
+        <ul>
+            <li>URLs principales con metadatos</li>
+            <li>Fecha de última modificación</li>
+            <li>Prioridad relativa y frequency de actualización</li>
+        </ul>
+        <h3>Crawl Budget</h3>
+        <ul>
+            <li>Eliminar páginas duplicadas o de bajo valor</li>
+            <li>Bloquear parámetros de sesión innecesarios</li>
+            <li>Usar 301s en lugar de contenido duplicado</li>
+            <li>Monitorear rastreo en Google Search Console</li>
+        </ul>""")
+    word_btn("Indexación", [("Componentes", [{"type": "li", "text": "Robots.txt, Sitemap XML, Crawl Budget"}])], "Indexacion.docx")
 
 
-# ──────────────────────────────────────────────
-# PAGE: ASO OPTIMIZATIONS
-# ──────────────────────────────────────────────
-def render_aso_optimizations():
-    back_button()
-    st.title("⚙️ ASO Optimizations")
-
+# ══════════════════════════════════════════════════
+# ASO OPTIMIZATIONS
+# ══════════════════════════════════════════════════
+def page_aso_opt():
+    page_header("⚙️", "ASO Optimizations")
     with st.expander("📋 Información General ASO", expanded=True):
-        st.markdown("""
-**¿Qué es ASO (App Store Optimization)?**
-
-ASO es el proceso de optimización de aplicaciones móviles para mejorar su visibilidad en las tiendas de aplicaciones (App Store, Google Play).
-
-**¿Por Qué ASO es Importante?**
-- **Mayor Visibilidad:** Mejora el ranking en búsquedas.
-- **Aumento de Descargas:** Más descargas sin costo de adquisición.
-- **Mejor Conversión:** Un listing optimizado convierte más visitantes.
-- **Competitividad:** En mercados saturados, ASO marca la diferencia.
-- **Retención:** Atraer usuarios relevantes mejora la retención.
-
-**Elementos Clave de ASO**
-- **Nombre de la Aplicación:** Palabras clave relevantes y memorable.
-- **Keywords:** Alto volumen y baja competencia.
-- **Descripción:** Clara, concisa y orientada a beneficios.
-- **Icono:** Visualmente atractivo y distinguible.
-- **Capturas de Pantalla:** Funciones principales y generar interés.
-- **Calificaciones y Reseñas:** Influyen en descarga y algoritmo.
-        """)
+        info("""
+        <h3>¿Qué es ASO?</h3>
+        <p>Optimización de apps móviles para mejorar visibilidad en App Store y Google Play.</p>
+        <h3>¿Por qué es importante?</h3>
+        <ul>
+            <li><strong>Mayor Visibilidad:</strong> Mejora ranking en búsquedas.</li>
+            <li><strong>Más Descargas:</strong> Sin costo de adquisición.</li>
+            <li><strong>Mejor Conversión:</strong> Listing optimizado convierte más.</li>
+            <li><strong>Competitividad:</strong> En mercados saturados marca la diferencia.</li>
+        </ul>
+        <h3>Elementos Clave</h3>
+        <ul>
+            <li><strong>Nombre:</strong> Palabras clave relevantes y memorable.</li>
+            <li><strong>Keywords:</strong> Alto volumen, baja competencia.</li>
+            <li><strong>Descripción:</strong> Orientada a beneficios.</li>
+            <li><strong>Icono:</strong> Atractivo y distinguible.</li>
+            <li><strong>Capturas:</strong> Funciones principales.</li>
+            <li><strong>Reseñas:</strong> Influyen en algoritmo.</li>
+        </ul>""")
 
     with st.expander("🔄 Proceso de Optimización"):
-        st.markdown("""
-**1. Investigación de Keywords**
-- Analizar palabras clave de competidores
-- Usar App Annie, Sensor Tower o Mobile Action
-- Identificar keywords de alto volumen y baja competencia
+        info("""
+        <h3>Etapas</h3>
+        <ul>
+            <li><strong>1. Keywords:</strong> Analizar competidores con App Annie, Sensor Tower, Mobile Action.</li>
+            <li><strong>2. Metadatos:</strong> Nombre, subtitle, descripción, keywords.</li>
+            <li><strong>3. Diseño Visual:</strong> Icono, capturas, preview video.</li>
+            <li><strong>4. Config Tiendas:</strong> Categoría, precio, compatibilidad.</li>
+            <li><strong>5. Testing:</strong> Búsquedas, listing, ranking.</li>
+            <li><strong>6. Monitoreo:</strong> Rankings, conversión, reseñas, ajustes.</li>
+        </ul>""")
 
-**2. Optimización de Metadatos**
-- Nombre con keyword principal, subtitle, descripción corta
-
-**3. Diseño Visual**
-- Icono, capturas de pantalla, preview video
-
-**4. Configuración en Tiendas**
-- Metadatos, categoría, precio, compatibilidad
-
-**5. Testing y Validación**
-- Búsquedas con keywords, listing correcto, monitorear ranking
-
-**6. Monitoreo y Ajustes**
-- Rankings, conversión, reseñas, ajustes según datos
-        """)
-
-    with st.expander("👥 Contactos o Stakeholders"):
-        st.markdown("""
-- **Ana López** - ASO Manager
-- **David Pérez** - App Marketing Specialist
-- **Elena Rodríguez** - UX/UI Designer
-        """)
-
-    word_data = generate_word("ASO Optimizations", [
-        ("Elementos Clave", [
-            {"type": "bullet", "text": "Nombre, Keywords, Descripción, Icono, Capturas, Reseñas"},
-        ]),
-        ("Proceso", [
-            {"type": "bullet", "text": "1. Investigación de Keywords → 2. Metadatos → 3. Diseño Visual → 4. Config Tiendas → 5. Testing → 6. Monitoreo"},
-        ]),
-    ])
-    st.download_button("📥 Descargar Word", word_data, "ASO_Optimizations.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+    with st.expander("👥 Contactos"):
+        info("""<ul>
+            <li><strong>Ana López</strong> — ASO Manager</li>
+            <li><strong>David Pérez</strong> — App Marketing Specialist</li>
+            <li><strong>Elena Rodríguez</strong> — UX/UI Designer</li>
+        </ul>""")
+    word_btn("ASO Optimizations", [("Proceso", [{"type": "li", "text": "Keywords → Metadatos → Visual → Config → Testing → Monitoreo"}])], "ASO_Optimizations.docx")
 
 
-# ──────────────────────────────────────────────
-# PAGE: IN APP EVENTS
-# ──────────────────────────────────────────────
-def render_in_app_events():
-    back_button()
-    st.title("📊 In App Events")
-
-    with st.expander("📋 Información General In App Events", expanded=True):
-        st.markdown("""
-**¿Qué son In App Events?**
-
-Los In App Events son acciones específicas que los usuarios realizan dentro de una aplicación móvil y que son rastreadas mediante herramientas de analytics. Generan datos cruciales para entender el comportamiento del usuario, optimizar la experiencia y medir el éxito de campañas.
-
-**¿Por Qué Son Importantes?**
-- **Medición de Conversiones:** Rastrean acciones clave que llevan a conversión.
-- **Análisis del Comportamiento:** Insight sobre cómo interactúan los usuarios.
-- **Optimización:** Identificar y optimizar puntos débiles.
-- **Retargeting:** Campañas de remarketing dirigidas.
-- **ROI:** Demostrar valor de la inversión en marketing móvil.
-
-**Tipos de In App Events**
-- **Custom Events:** Personalizados según necesidades del negocio.
-- **Standard Events:** Predefinidos como Purchase, AddToCart, Signup.
-- **Funnel Events:** Secuencia que conforma un flujo de conversión.
-- **Revenue Events:** Relacionados con monetización e ingresos.
-        """)
+# ══════════════════════════════════════════════════
+# IN APP EVENTS
+# ══════════════════════════════════════════════════
+def page_in_app():
+    page_header("📊", "In App Events")
+    with st.expander("📋 Información General", expanded=True):
+        info("""
+        <h3>¿Qué son?</h3>
+        <p>Acciones que los usuarios realizan dentro de una app móvil, rastreadas mediante herramientas de analytics. Generan datos cruciales para entender comportamiento, optimizar experiencia y medir campañas.</p>
+        <h3>¿Por qué importan?</h3>
+        <ul>
+            <li><strong>Medición de Conversiones:</strong> Rastrean acciones clave.</li>
+            <li><strong>Análisis de Comportamiento:</strong> Insight sobre interacciones.</li>
+            <li><strong>Optimización:</strong> Identificar puntos débiles.</li>
+            <li><strong>Retargeting:</strong> Campañas dirigidas.</li>
+            <li><strong>ROI:</strong> Demostrar valor de inversión.</li>
+        </ul>
+        <h3>Tipos</h3>
+        <ul>
+            <li><strong>Custom Events:</strong> Personalizados del negocio.</li>
+            <li><strong>Standard Events:</strong> Purchase, AddToCart, Signup.</li>
+            <li><strong>Funnel Events:</strong> Flujo de conversión.</li>
+            <li><strong>Revenue Events:</strong> Monetización e ingresos.</li>
+        </ul>""")
 
     with st.expander("🔄 Proceso de Configuración"):
-        st.markdown("""
-**Objetivo:** Organizar, planificar y activar In App Events para LAM de forma coordinada con Global ASO y Content, asegurando disponibilidad de slots, fechas claras y materiales listos antes del go live.
+        info("""
+        <h3>Objetivo</h3>
+        <p>Organizar, planificar y activar In App Events para LAM coordinando con Global ASO y Content.</p>
 
-**1. Validación de slots con Global ASO**
+        <h3>1. Validación de slots con Global ASO</h3>
+        <p>Llamadas recurrentes con <strong>Federica Bello</strong> de Global ASO para conocer slots disponibles. LAM es pionero en implementación — generalmente tenemos varios slots.</p>
 
-Tener llamadas recurrentes con **Federica Bello** de Global ASO para conocer los slots disponibles. Generalmente, al ser LAM pionero en la implementación, tenemos varios slots disponibles.
+        <h3>2. Cronograma con Content</h3>
+        <p>Reunión con <strong>Alexa Peralta</strong> de Content para construir el cronograma:</p>
+        <p><a href="https://adidasgroup-my.sharepoint.com/:x:/r/personal/jose_rubertone_adidas_com/_layouts/15/Doc.aspx?sourcedoc=%7BBD2C4A94-E8A9-42EB-8093-87C9DB56043F%7D&file=LAM%20-%20ASO%20-%20COMMERCIAR%20EVENTS%20-%20Organizer.xlsx&action=default&mobileredirect=true" target="_blank">📎 LAM - ASO - COMMERCIAR EVENTS - Organizer</a></p>
 
-**2. Cronograma con Content**
+        <h3>3. Push a Content por país</h3>
+        <p>Seguimiento con Content responsable por país. Materiales idealmente <strong>7 días antes</strong> del go live.</p>""")
 
-Reunión con **Alexa Peralta** de Content. Documento disponible en:
-""")
-        st.markdown("[📄 LAM - ASO - COMMERCIAR EVENTS - Organizer](https://adidasgroup-my.sharepoint.com/:x:/r/personal/jose_rubertone_adidas_com/_layouts/15/Doc.aspx?sourcedoc=%7BBD2C4A94-E8A9-42EB-8093-87C9DB56043F%7D&file=LAM%20-%20ASO%20-%20COMMERCIAR%20EVENTS%20-%20Organizer.xlsx&action=default&mobileredirect=true)")
-        st.markdown("""
-Colocar próximos In App Events con fecha de go live y fecha de terminación.
+    with st.expander("🛠️ Configuración en Herramienta"):
+        info("""
+        <h3>Checklist inicial</h3>
+        <ul>
+            <li>✅ Slot confirmado con Global ASO</li>
+            <li>✅ Fecha go live y terminación en cronograma</li>
+            <li>✅ Materiales finales de Content</li>
+            <li>✅ Textos, imágenes, país, fechas verificados</li>
+        </ul>
+        <h3>Materiales necesarios</h3>
+        <ul>
+            <li>Nombre del evento</li>
+            <li>Copy aprobado</li>
+            <li>Assets visuales finales</li>
+            <li>País(es) de activación</li>
+            <li>Fecha/hora inicio y fin</li>
+        </ul>
+        <h3>Validación final</h3>
+        <ul>
+            <li>Revisar vista previa antes de enviar</li>
+            <li>Confirmar fechas vs cronograma</li>
+            <li>Compartir confirmación con ASO y Content</li>
+        </ul>""")
 
-**3. Push a Content por país**
-
-Seguimiento con la persona de Content responsable por país. Materiales idealmente **7 días antes** del go live.
-        """)
-
-    with st.expander("🛠️ Configuración en la Herramienta"):
-        st.markdown("""
-**Checklist inicial**
-- ✅ Validar que el slot esté confirmado con Global ASO
-- ✅ Confirmar fecha de go live y terminación en el cronograma
-- ✅ Revisar que Content haya entregado materiales finales
-- ✅ Verificar textos, imágenes, país, fechas y objetivo
-
-**Materiales necesarios**
-- Nombre del In App Event
-- Descripción o copy aprobado
-- Assets visuales finales
-- País o países donde se activará
-- Fecha y hora de inicio
-- Fecha y hora de finalización
-
-**Validación final**
-- Revisar la vista previa antes de enviar
-- Confirmar que las fechas coincidan con el cronograma
-- Compartir confirmación con ASO y Content una vez configurado
-        """)
-
-    with st.expander("👥 Contactos o Stakeholders"):
-        st.markdown("""
-- **Federica Bello** — Global ASO. Confirma disponibilidad de slots.
-- **Alexa Peralta** — Content. Apoya construcción del cronograma.
-- **Content por país** — Entrega materiales 7 días antes del go live.
-        """)
-
-    word_data = generate_word("In App Events", [
-        ("Tipos de Events", [
-            {"type": "bullet", "text": "Custom Events, Standard Events, Funnel Events, Revenue Events"},
+    with st.expander("👥 Contactos"):
+        info("""<ul>
+            <li><strong>Federica Bello</strong> — Global ASO. Confirma slots.</li>
+            <li><strong>Alexa Peralta</strong> — Content. Cronograma.</li>
+            <li><strong>Content por país</strong> — Materiales 7 días antes del go live.</li>
+        </ul>""")
+    word_btn("In App Events", [
+        ("Proceso", [
+            {"type": "li", "text": "1. Validación slots con Federica Bello (Global ASO)"},
+            {"type": "li", "text": "2. Cronograma con Alexa Peralta (Content)"},
+            {"type": "li", "text": "3. Push a Content por país — 7 días antes del go live"},
         ]),
-        ("Proceso de Configuración", [
-            {"type": "bullet", "text": "1. Validación de slots con Global ASO (Federica Bello)"},
-            {"type": "bullet", "text": "2. Cronograma con Content (Alexa Peralta)"},
-            {"type": "bullet", "text": "3. Push a Content por país — materiales 7 días antes del go live"},
-        ]),
-        ("Contactos", [
-            {"type": "bullet", "text": "Federica Bello — Global ASO"},
-            {"type": "bullet", "text": "Alexa Peralta — Content"},
-        ]),
-    ])
-    st.download_button("📥 Descargar Word", word_data, "In_App_Events.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+    ], "In_App_Events.docx")
 
 
-# ──────────────────────────────────────────────
-# PAGE: AB TEST
-# ──────────────────────────────────────────────
-def render_ab_test():
-    back_button()
-    st.title("🧪 AB Test")
-
-    with st.expander("📋 Información General AB Testing", expanded=True):
-        st.markdown("""
-**¿Qué es AB Testing?**
-
-Metodología que compara dos versiones de una página o elemento para determinar cuál performa mejor. División aleatoria del tráfico entre dos variantes para tomar decisiones informadas.
-
-**¿Por Qué es Importante?**
-- **Decisiones Basadas en Datos:** Elimina la especulación.
-- **Mejora Continua:** Iterar y optimizar constantemente.
-- **Reducción de Riesgo:** Valida cambios antes de implementación completa.
-- **Incremento de Conversiones:** Mejoras acumulativas generan resultados significativos.
-- **ROI Óptimo:** Asegura que los cambios generan valor.
-
-**Elementos Comunes para AB Testing**
-- **Copy y Messaging:** Títulos, botones, descripciones.
-- **Design:** Colores, layout, tipografía, espaciado.
-- **Elementos Visuales:** Imágenes, iconos, animaciones.
-- **User Flow:** Orden de pasos, ubicación de botones.
-- **Precios y Ofertas:** Valores, planes, descuentos.
-        """)
+# ══════════════════════════════════════════════════
+# AB TEST
+# ══════════════════════════════════════════════════
+def page_ab_test():
+    page_header("🧪", "AB Test")
+    with st.expander("📋 Información General", expanded=True):
+        info("""
+        <h3>¿Qué es AB Testing?</h3>
+        <p>Metodología que compara dos versiones para determinar cuál performa mejor mediante división aleatoria del tráfico.</p>
+        <h3>¿Por qué es importante?</h3>
+        <ul>
+            <li><strong>Decisiones Basadas en Datos:</strong> Elimina especulación.</li>
+            <li><strong>Mejora Continua:</strong> Iterar constantemente.</li>
+            <li><strong>Reducción de Riesgo:</strong> Valida antes de implementar.</li>
+            <li><strong>Incremento de Conversiones:</strong> Mejoras acumulativas.</li>
+        </ul>
+        <h3>Elementos Comunes</h3>
+        <ul>
+            <li><strong>Copy:</strong> Títulos, botones, descripciones.</li>
+            <li><strong>Design:</strong> Colores, layout, tipografía.</li>
+            <li><strong>Visuales:</strong> Imágenes, iconos, animaciones.</li>
+            <li><strong>User Flow:</strong> Orden de pasos.</li>
+            <li><strong>Precios:</strong> Valores, planes, descuentos.</li>
+        </ul>""")
 
     with st.expander("🔄 Proceso de AB Testing"):
-        st.markdown("""
-**Objetivo:** Ejecutar pruebas A/B rigurosas para validar cambios de diseño, mensajería y funcionalidad.
+        info("""
+        <h3>Etapas</h3>
+        <ul>
+            <li><strong>1. Hipótesis:</strong> "Si cambio X, entonces Z mejorará". Priorizar por impacto.</li>
+            <li><strong>2. Diseño:</strong> Control (A) vs Variante (B). Definir KPI, muestra, duración (mín. 2 semanas).</li>
+            <li><strong>3. Config Técnica:</strong> Optimizely / Apptimize / Firebase. Distribución 50/50.</li>
+            <li><strong>4. Ejecución:</strong> Monitorear diario. NO detener prematuramente.</li>
+            <li><strong>5. Análisis:</strong> Significancia estadística (p-value &lt; 0.05). Documentar insights.</li>
+            <li><strong>6. Decisión:</strong> B gana → implementar 100%. Empate → evaluar. A gana → mantener o nueva variante.</li>
+        </ul>""")
 
-**1. Identificación de Hipótesis**
-- Analizar métricas actuales e identificar oportunidades
-- Plantear hipótesis clara: "Si cambio X, entonces Z mejorará"
-- Priorizar por impacto potencial y facilidad
-- Documentar baseline actual
-
-**2. Diseño del Test**
-- Versión A (Control): Sin cambios
-- Versión B (Variante): Con el cambio a probar
-- Métrica clave, tamaño de muestra, duración (mín. 2 semanas)
-
-**3. Configuración Técnica**
-- Plataforma: Optimizely, Apptimize, Firebase
-- Segmentación y audiencia target
-- Distribución 50/50
-
-**4. Ejecución y Monitoreo**
-- Monitorear métricas diariamente
-- Detectar anomalías — NO detener prematuramente
-
-**5. Análisis de Resultados**
-- Diferencia entre A y B
-- Significancia estadística (p-value < 0.05)
-- Documentar aprendizajes
-
-**6. Decisión e Implementación**
-- **Si B gana:** Implementar al 100%
-- **Si empate:** Evaluar otros factores
-- **Si A gana:** Mantener control o probar variante diferente
-        """)
-
-    with st.expander("👥 Contactos o Stakeholders"):
-        st.markdown("""
-- **María Flores** - Product Manager
-- **Roberto Jiménez** - UX Researcher
-- **Camila Soto** - Growth Analyst
-        """)
-
-    word_data = generate_word("AB Test", [
-        ("Proceso", [
-            {"type": "bullet", "text": "1. Identificación de Hipótesis"},
-            {"type": "bullet", "text": "2. Diseño del Test (Control vs Variante)"},
-            {"type": "bullet", "text": "3. Configuración Técnica (Optimizely/Firebase)"},
-            {"type": "bullet", "text": "4. Ejecución y Monitoreo"},
-            {"type": "bullet", "text": "5. Análisis de Resultados (p-value < 0.05)"},
-            {"type": "bullet", "text": "6. Decisión e Implementación"},
-        ]),
-    ])
-    st.download_button("📥 Descargar Word", word_data, "AB_Test.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+    with st.expander("👥 Contactos"):
+        info("""<ul>
+            <li><strong>María Flores</strong> — Product Manager</li>
+            <li><strong>Roberto Jiménez</strong> — UX Researcher</li>
+            <li><strong>Camila Soto</strong> — Growth Analyst</li>
+        </ul>""")
+    word_btn("AB Test", [("Proceso", [
+        {"type": "li", "text": "Hipótesis → Diseño → Config → Ejecución → Análisis → Decisión"},
+    ])], "AB_Test.docx")
 
 
-# ──────────────────────────────────────────────
+# ══════════════════════════════════════════════════
 # ROUTER
-# ──────────────────────────────────────────────
-PAGE_MAP = {
-    "index": render_index,
-    "auditoria": render_auditoria,
-    "urls": render_urls,
-    "mobile": render_mobile,
-    "rendimiento": render_rendimiento,
-    "metadata": render_metadata,
-    "indexacion": render_indexacion,
-    "aso_optimizations": render_aso_optimizations,
-    "in_app_events": render_in_app_events,
-    "ab_test": render_ab_test,
+# ══════════════════════════════════════════════════
+PAGES = {
+    "index": page_index,
+    "auditoria": page_auditoria,
+    "urls": page_urls,
+    "mobile": page_mobile,
+    "rendimiento": page_rendimiento,
+    "metadata": page_metadata,
+    "indexacion": page_indexacion,
+    "aso_opt": page_aso_opt,
+    "in_app": page_in_app,
+    "ab_test": page_ab_test,
 }
 
-if not st.session_state.authenticated:
-    render_password()
+if not st.session_state.auth:
+    page_login()
 else:
-    # Sidebar navigation
     with st.sidebar:
         st.markdown("### 🗺️ Navegación")
-        st.markdown("---")
-        st.markdown("**SEO**")
-        if st.button("🏠 Inicio", use_container_width=True, key="nav_home"):
-            navigate("index"); st.rerun()
-        if st.button("🔍 Redirecciones 404", use_container_width=True, key="nav_404"):
-            navigate("auditoria"); st.rerun()
-        if st.button("🔗 Estructura de URLs", use_container_width=True, key="nav_urls"):
-            navigate("urls"); st.rerun()
-        if st.button("📱 Mobile Optimization", use_container_width=True, key="nav_mobile"):
-            navigate("mobile"); st.rerun()
-        if st.button("🚀 Rendimiento", use_container_width=True, key="nav_rend"):
-            navigate("rendimiento"); st.rerun()
-        if st.button("🏷️ Metadata & Schema", use_container_width=True, key="nav_meta"):
-            navigate("metadata"); st.rerun()
-        if st.button("📑 Indexación", use_container_width=True, key="nav_idx"):
-            navigate("indexacion"); st.rerun()
-
-        st.markdown("---")
-        st.markdown("**ASO**")
-        if st.button("⚙️ ASO Optimizations", use_container_width=True, key="nav_aso"):
-            navigate("aso_optimizations"); st.rerun()
-        if st.button("📊 In App Events", use_container_width=True, key="nav_events"):
-            navigate("in_app_events"); st.rerun()
-        if st.button("🧪 AB Test", use_container_width=True, key="nav_ab"):
-            navigate("ab_test"); st.rerun()
-
-        st.markdown("---")
-        if st.button("🚪 Cerrar sesión", use_container_width=True, key="nav_logout"):
-            st.session_state.authenticated = False
-            st.session_state.current_page = "index"
+        st.divider()
+        st.caption("SEO")
+        for label, pid in [("🏠 Inicio", "index"), ("🔍 Redirecciones 404", "auditoria"),
+                           ("🔗 Estructura de URLs", "urls"), ("📱 Mobile", "mobile"),
+                           ("🚀 Rendimiento", "rendimiento"), ("🏷️ Metadata & Schema", "metadata"),
+                           ("📑 Indexación", "indexacion")]:
+            if st.button(label, key=f"s_{pid}", use_container_width=True):
+                go(pid); st.rerun()
+        st.divider()
+        st.caption("ASO")
+        for label, pid in [("⚙️ ASO Optimizations", "aso_opt"), ("📊 In App Events", "in_app"),
+                           ("🧪 AB Test", "ab_test")]:
+            if st.button(label, key=f"s_{pid}", use_container_width=True):
+                go(pid); st.rerun()
+        st.divider()
+        if st.button("🚪 Cerrar sesión", key="logout", use_container_width=True):
+            st.session_state.auth = False
+            st.session_state.page = "index"
             st.rerun()
 
-    renderer = PAGE_MAP.get(st.session_state.current_page, render_index)
-    renderer()
+    PAGES.get(st.session_state.page, page_index)()
