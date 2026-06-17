@@ -23,20 +23,25 @@ html, body, [class*="css"] { font-family: 'Rubik', sans-serif !important; }
 [data-testid="stToolbar"] { display: none !important; }
 .block-container { padding-top: 2rem !important; padding-bottom: 2rem !important; max-width: 1100px !important; }
 [data-testid="stSidebar"] { background-color: #111 !important; }
+[data-testid="stSidebar"] > div { background-color: #111 !important; }
 [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p { color: #ccc; }
 
 /* ── Password screen ── */
-.login-wrapper {
-    display: flex; justify-content: center; align-items: center;
-    min-height: 70vh; padding: 20px;
+.login-center {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; min-height: 65vh; padding: 20px;
 }
-.login-box {
+.login-card {
     background: #141414; border: 1px solid #2a2a2a; border-radius: 16px;
-    padding: 48px 40px; max-width: 400px; width: 100%;
+    padding: 48px 40px; max-width: 380px; width: 100%; text-align: center;
     box-shadow: 0 20px 60px rgba(0,0,0,0.5);
 }
-.login-box h1 { font-size: 1.8rem; font-weight: 700; color: #fff; margin: 0 0 6px; }
-.login-box p { color: #777; font-size: 0.95rem; margin: 0 0 28px; }
+.login-card .lock { font-size: 3rem; margin-bottom: 16px; display: block; }
+.login-card h2 { font-size: 1.5rem; font-weight: 700; color: #fff; margin: 0 0 6px; }
+.login-card p { color: #777; font-size: 0.9rem; margin: 0 0 24px; }
+/* Force all containers on login page to have no visible background */
+[data-testid="stVerticalBlock"] { background: transparent !important; }
+[data-testid="column"] { background: transparent !important; }
 
 /* ── Section titles ── */
 .sec-title {
@@ -186,20 +191,32 @@ def word_btn(title, sections, filename):
 # PASSWORD
 # ══════════════════════════════════════════════════
 def page_login():
-    st.markdown('<div class="login-wrapper"><div class="login-box">', unsafe_allow_html=True)
-    st.markdown("<h1>🔒 Acceso privado</h1><p>Ingresa la contraseña para ver el mapa de procesos.</p>", unsafe_allow_html=True)
-    st.markdown('</div></div>', unsafe_allow_html=True)
+    # Extra CSS to center the Streamlit widgets on this page
+    st.markdown("""<style>
+    .block-container { max-width: 400px !important; margin: auto !important; }
+    .block-container { display: flex; flex-direction: column; justify-content: center; min-height: 80vh; }
+    .stTextInput > div > div > input {
+        background: #1a1a1a !important; border: 1px solid #333 !important;
+        border-radius: 8px !important; color: #fff !important;
+        padding: 12px 16px !important; font-size: 1rem !important;
+    }
+    .stTextInput > div > div > input:focus { border-color: #4a9eff !important; }
+    </style>""", unsafe_allow_html=True)
 
-    _, col, _ = st.columns([1.3, 1, 1.3])
-    with col:
-        pw = st.text_input("Contraseña", type="password", label_visibility="collapsed",
-                           placeholder="Contraseña...")
-        if st.button("**Entrar**", type="primary", use_container_width=True):
-            if pw.strip() == "SEOLAM2026":
-                st.session_state.auth = True
-                st.rerun()
-            else:
-                st.error("Contraseña incorrecta.")
+    st.markdown("""<div class="login-center"><div class="login-card">
+        <span class="lock">🔒</span>
+        <h2>Acceso privado</h2>
+        <p>Ingresa la contraseña para continuar</p>
+    </div></div>""", unsafe_allow_html=True)
+
+    pw = st.text_input("Contraseña", type="password", label_visibility="collapsed",
+                       placeholder="Contraseña...")
+    if st.button("**Entrar**", type="primary", use_container_width=True):
+        if pw.strip() == "SEOLAM2026":
+            st.session_state.auth = True
+            st.rerun()
+        else:
+            st.error("Contraseña incorrecta.")
 
 
 # ══════════════════════════════════════════════════

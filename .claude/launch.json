@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "streamlit",
+      "runtimeExecutable": "streamlit",
+      "runtimeArgs": ["run", "app.py", "--server.port", "8502", "--server.headless", "true"],
+      "port": 8502,
+      "cwd": "C:\\Users\\jimenali\\Claude Repository\\mapa-procesos-seo-aso"
+    }
+  ]
+}
